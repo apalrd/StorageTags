@@ -27,6 +27,12 @@ class STCameraDecoder():
         #Framerate, default 1.0
         self.Framerate = CamConfig.get('framerate',1.0)
 
+        #Some variables which should be initialized
+        self.ImageColor = None
+        self.Detections = None
+        self.CStatus = None
+        self.Results = None
+
         #Make sure that none of the configuration is invalid
         if(self.FullName is None):
             print("Error: Camera Unnamed has no name")
@@ -87,6 +93,7 @@ class STCameraDecoder():
                     #Convert now into a string
                     StrTime = tnow.strftime("%Y-%m-%d-%H:%M:%S")
                     #Handling of each detection
+                    self.Results = []
                     for detect in self.Detections:
                         #Draw outline over image
                         points = detect['lb-rb-rt-lt']
@@ -106,6 +113,7 @@ class STCameraDecoder():
                             'LastUpdate': StrTime,
                             'Camera': self.Name
                         }
+                        self.Results.append(payload)
 
                         #Topic for MQTT
                         topic = self.Name+"/"+str(detect['id'])
@@ -118,7 +126,7 @@ class STCameraDecoder():
                     totime = (datetime.now() - tnow).total_seconds()
 
                     #Create dict for camera status data
-                    CStatus = {
+                    self.CStatus = {
                         'FullName': self.FullName,
                         'Name': self.Name,
                         'FrameRateTarget':self.Framerate,
@@ -131,7 +139,7 @@ class STCameraDecoder():
 
                     #Publish status data to MQTT as well
                     if self.MqttClient is not None:
-                        self.MqttClient.publish("status/"+self.Name,json.dumps(CStatus))
+                        self.MqttClient.publish("status/"+self.Name,json.dumps(self.CStatus))
 
                 #On normal loop termination, release VCap
                 print("CAM: Cleaning up capture for",self.Name)

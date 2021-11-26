@@ -1,5 +1,11 @@
 #Webserver
-#TBD
+#Note that even if you'd like the defaults, you must have at least one config entry
+#Otherwise, the web section is empty and the server is not configured with defaults
+web:
+  #Default is to accept any connection, you may bind to a specific address with host
+  host: 'localhost'
+  #Default is 8080
+  port: 8080
 
 #MQTT
 #If the section does not exist, MQTT service will not be started
