@@ -9,7 +9,6 @@ import threading
 class MqttClient():
     #Create camera decoder with a config dictionary
     def __init__(self, MqttConfig):
-        print("MQTT: DEBUG: MqttConfig is ",MqttConfig)
         #Address of broker
         self.Broker = MqttConfig.get('broker')
         #Port of broker

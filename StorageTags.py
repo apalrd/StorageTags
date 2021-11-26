@@ -1,4 +1,5 @@
 from MqttClient import MqttClient
+from CameraDecoder import CameraDecoder
 import time
 
 data = {
@@ -7,11 +8,19 @@ data = {
 }
 cl = MqttClient(data)
 
+# Create CameraDecoder
+cconfig = {
+    'url':'rtsp://10.0.69.2:554/11',
+    'name':'Lab Camera',
+    'framerate':1.0,
+    'tag':'tag36h11'
+}
+cd = CameraDecoder(cconfig,cl)
+
 while(1):
-    #cl.Client.publish("storagetracker/status","test")
     try:
         time.sleep(10)
-        cl.publish("Test","TestData")
     except KeyboardInterrupt:
         break
 cl.stop()
+cd.stop()
