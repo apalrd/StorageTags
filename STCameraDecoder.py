@@ -27,11 +27,24 @@ class STCameraDecoder():
         #Framerate, default 1.0
         self.Framerate = CamConfig.get('framerate',1.0)
 
+        #Remove all spaces from Name to get internal name handle
+        self.Name = self.FullName.replace(" ","")
+
         #Some variables which should be initialized
         self.ImageColor = None
         self.Detections = None
-        self.CStatus = None
         self.Results = None
+        #Create dict for camera status data for non-operating camera
+        self.CStatus = {
+            'FullName': self.FullName,
+            'Name': self.Name,
+            'FrameRateTarget':self.Framerate,
+            'FrameRate':0,
+            'DetectorTime':0,
+            'ProcessTime':0,
+            'LastUpdate':None,
+            'NumDetections':0
+        }
 
         #Make sure that none of the configuration is invalid
         if(self.FullName is None):
@@ -40,9 +53,6 @@ class STCameraDecoder():
         if(self.URL is None):
             print("Error: Camera",self.FullName,"has invalid URL")
             return
-
-        #Remove all spaces from Name to get internal name handle
-        self.Name = self.FullName.replace(" ","")
 
         #Start a task for the camera
         self.Run = True
@@ -70,6 +80,17 @@ class STCameraDecoder():
                     ret,self.ImageColor = VCap.read()
                     #If read error, terminate camera and start over
                     if ret == False:
+                        #Create dict for camera status data for non-operating camera
+                        self.CStatus = {
+                            'FullName': self.FullName,
+                            'Name': self.Name,
+                            'FrameRateTarget':self.Framerate,
+                            'FrameRate':0,
+                            'DetectorTime':0,
+                            'ProcessTime':0,
+                            'LastUpdate':None,
+                            'NumDetections':0
+                        }
                         #Wait 30 seconds before retrying, but abort if stop flag is also set
                         for i in range(1,30):
                             if self.Run:

@@ -9,6 +9,7 @@ import json
 import random
 import threading
 from http.server import BaseHTTPRequestHandler, HTTPServer
+import os.path
 
 #Web Server glass
 class STWebServer():
@@ -67,18 +68,81 @@ class STWebServer():
 
             #Function to return a static file
             def do_static(self):
-                return
+                #Strip the path of all ..'s so people don't try and escape
+                self.path = self.path.replace("..","")
+
+                #Add Add the path of the current file + 'static'
+                root = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static')
+                
+                #If the path is empty, add the index file
+                if self.path == '/':
+                    filename = root + '/index.html'
+                else:
+                    filename = root + self.path
+
+                #Determine if file does or does not exist
+                if(not os.path.exists(filename)):
+                    #Return an error
+                    self.do_error()
+                    return
+
+                #Determine file type
+                self.send_response(200)
+                if filename.endswith('.css'):
+                    self.send_header('Content-type', 'text/css')
+                elif filename.endswith('.json'):
+                    self.send_header('Content-type', 'application/json')
+                elif filename.endswith('.js'):
+                    self.send_header('Content-type', 'application/javascript')
+                elif filename.endswith('.ico'):
+                    self.send_header('Content-type', 'image/x-icon')
+                elif filename.endswith('.png'):
+                    self.send_header('Content-type', 'image/png')
+                else:
+                    self.send_header('Content-type', 'text/html')
+                self.end_headers()
+
+                #Open file as binary and return as binary
+                with open(filename, 'rb') as fh:
+                    data = fh.read()
+                    self.wfile.write(data)
+
 
             #Function to return an API endpoint
             def do_api(self):
-                return
+                #Cameras endpoint (array of camera statuses)
+                if(self.path.startswith('cameras')):
+                    self.do_api_cameras()
+                #Camera endpoint (single camera detection status)
+                elif(self.path.startswith('camera/')):
+                    self.do_api_camera()
+                #Camera Still endpoint
+                elif(self.path.startswith('camerastill/')):
+                    self.do_api_camerastill()
+                #Box List endpoint
+                elif(self.path.startswith('boxes')):
+                    self.do_api_boxes()
+                #Other
+                else:
+                    self.do_error()
 
-            #Function to return an error
+            #Function to return an error in HTML form
             def do_error(self):
                 self.send_response(404)
                 self.send_header("Content-type", "text/html")
                 self.end_headers()
                 self.return_string("<html><body>Not Found</body></html>")
+
+            #Function to handle the cameras endpoint (array of camera statuses)
+            def do_api_cameras(self):
+                self.send_response(200)
+                self.send_header('Content-type','application/json')
+                self.end_headers()
+                RtnData = {}
+                for Cam in server.Objs['CamCd']:
+                    RtnData[Cam.Name] = Cam.CStatus
+                #JSON-ify the result
+                self.return_string(json.dumps(RtnData))
 
         print("WEB: Starting task")
         
