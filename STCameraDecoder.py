@@ -127,6 +127,7 @@ class STCameraDecoder():
 
                         #Create dict for the detection data to be used in the data store and MQTT
                         payload = {
+                            'ID': detect['id'],
                             'X': detect['center'][0],
                             'Y': detect['center'][1],
                             'Hamming': detect['hamming'],

@@ -138,11 +138,35 @@ class STWebServer():
                 self.send_response(200)
                 self.send_header('Content-type','application/json')
                 self.end_headers()
-                RtnData = {}
+                RtnData = []
                 for Cam in server.Objs['CamCd']:
-                    RtnData[Cam.Name] = Cam.CStatus
+                    RtnData.append(Cam.CStatus)
                 #JSON-ify the result
                 self.return_string(json.dumps(RtnData))
+
+            #Function to handle the camera endpoint (array of detections for one camera)
+            def do_api_camera(self):
+                #Strip the API endpoint so we can identify the camera name
+                self.path = self.path.replace('camera/','')
+                print("WEB: Identifying camera by name",self.path)
+                #Check which camera it is
+                RtnData = None
+                for Cam in server.Objs['CamCd']:
+                    if self.path.startswith(Cam.Name):
+                        #Camera is valid, but results are not
+                        if Cam.Results is None:
+                            RtnData = {'Length':0}\
+                        #Results are valid
+                        else:
+                            RtnData = {'Length':len(Cam.Results),'Results':Cam.Results}
+                #If none, path wasn't found
+                if RtnData is None:
+                    self.do_error()
+                #Otherwise, JSON-ify it
+                self.send_response(200)
+                self.send_header('Content-type','application/json')
+                self.end_headers()      
+                self.return_string(json.dumps(RtnData))          
 
         print("WEB: Starting task")
         
