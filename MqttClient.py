@@ -1,4 +1,7 @@
+#Copyright (C) 2021 Andrew Palardy
+#See LICENSE file for complete license terms
 #MqttClient class
+#Implements management code for Paho MQTT client
 from paho.mqtt import client as mqtt_client
 import json
 import threading
