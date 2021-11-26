@@ -6,7 +6,7 @@ from paho.mqtt import client as mqtt_client
 import json
 import threading
 
-class MqttClient():
+class STMqttClient():
     #Create camera decoder with a config dictionary
     def __init__(self, MqttConfig):
         #Address of broker

@@ -12,7 +12,7 @@ import json
 import random
 import threading
 
-class CameraDecoder():
+class STCameraDecoder():
     #Create camera decoder with a config dictionary
     def __init__(self, CamConfig, MqttClient):
         #MQTT Client class
