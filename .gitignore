@@ -1,2 +1,5 @@
 #Ignore pycache
 __pycache__/
+
+#Ignore config.yml since this contains private information
+config.yml
