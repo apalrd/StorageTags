@@ -10,6 +10,8 @@ import random
 import threading
 from http.server import BaseHTTPRequestHandler, HTTPServer
 import os.path
+import logging
+
 
 #Web Server glass
 class STWebServer():
@@ -201,7 +203,12 @@ class STWebServer():
                 self.send_response(200)
                 self.send_header('Content-type','image/jpeg')
                 self.end_headers()      
-                self.wfile.write(RtnData.tobytes())                    
+                self.wfile.write(RtnData.tobytes())   
+
+
+            #Custom log_message which does absolutely nothing to stop logging all the requests
+            def log_message(self, format, *args):
+                return       
 
         print("WEB: Starting task")
         
