@@ -80,7 +80,7 @@ class STCameraDecoder():
                     ret,self.ImageColor = VCap.read()
                     #If read error, terminate camera and start over
                     if ret == False:
-                        #Create dict for camera status data for non-operating camera
+                        #Clear camera status
                         self.CStatus = {
                             'FullName': self.FullName,
                             'Name': self.Name,
@@ -91,6 +91,7 @@ class STCameraDecoder():
                             'LastUpdate':None,
                             'NumDetections':0
                         }
+                        self.ImageColor = None
                         #Wait 30 seconds before retrying, but abort if stop flag is also set
                         for i in range(1,30):
                             if self.Run:
@@ -116,15 +117,6 @@ class STCameraDecoder():
                     #Handling of each detection
                     self.Results = []
                     for detect in self.Detections:
-                        #Draw outline over image
-                        points = detect['lb-rb-rt-lt']
-                        n = len(points)
-                        # Draw the box outline as 4 lines
-                        for j in range(0,n):
-                            p1 = tuple([int(cell) for cell in points[j]])
-                            p2 = tuple([int(cell) for cell in points[(j+1)%n]])
-                            cv2.line(self.ImageColor, p1, p2, (255,0,0), 3)
-
                         #Create dict for the detection data to be used in the data store and MQTT
                         payload = {
                             'ID': detect['id'],

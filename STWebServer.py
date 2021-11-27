@@ -110,15 +110,15 @@ class STWebServer():
 
             #Function to return an API endpoint
             def do_api(self):
-                #Cameras endpoint (array of camera statuses)
-                if(self.path.startswith('cameras')):
-                    self.do_api_cameras()
                 #Camera endpoint (single camera detection status)
-                elif(self.path.startswith('camera/')):
+                if(self.path.startswith('camera/')):
                     self.do_api_camera()
                 #Camera Still endpoint
                 elif(self.path.startswith('camerastill/')):
                     self.do_api_camerastill()
+                #Cameras endpoint (array of camera statuses)
+                elif(self.path.startswith('cameras')):
+                    self.do_api_cameras()
                 #Box List endpoint
                 elif(self.path.startswith('boxes')):
                     self.do_api_boxes()
@@ -162,11 +162,46 @@ class STWebServer():
                 #If none, path wasn't found
                 if RtnData is None:
                     self.do_error()
+                    return
                 #Otherwise, JSON-ify it
                 self.send_response(200)
                 self.send_header('Content-type','application/json')
                 self.end_headers()      
-                self.return_string(json.dumps(RtnData))          
+                self.return_string(json.dumps(RtnData))    
+
+            #Function to return a JPEG of the latest image from a camera
+            def do_api_camerastill(self):
+                 #Strip the API endpoint so we can identify the camera name
+                self.path = self.path.replace('camerastill/','')
+                print("WEB: Identifying camera by name for still",self.path)
+                #Check which camera it is
+                RtnData = None
+                ImgFound = False
+                for Cam in server.Objs['CamCd']:
+                    if self.path.startswith(Cam.Name):
+                        #Camera is correct
+                        ImgFound = True
+                        #Camera is correct and image is valid, convert image to bytes
+                        if Cam.ImageColor is not None:
+                            ImSuccess,RtnData = cv2.imencode(".jpeg",Cam.ImageColor)
+                            if not ImSuccess:
+                                RtnData = None
+
+                #If ImgFound is false, return error
+                if ImgFound == False:
+                    self.do_error()
+                    return
+                #If RtnData is none, then the image was found to be invalid
+                elif RtnData is None:
+                    #Return 503 error if camera is offline
+                    self.send_response(503)
+                    self.end_headers()
+                    return
+                #Otherwise, return binary data
+                self.send_response(200)
+                self.send_header('Content-type','image/jpeg')
+                self.end_headers()      
+                self.wfile.write(RtnData.tobytes())                    
 
         print("WEB: Starting task")
         
