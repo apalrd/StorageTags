@@ -70,6 +70,8 @@ class STCameraDecoder():
             try:
                 print("CAM: Starting VideoCapture for camera",self.Name,"at address",self.URL)
                 VCap = cv2.VideoCapture(self.URL,cv2.CAP_FFMPEG)
+                #Set buffer size small
+                VCap.set(cv2.CAP_PROP_BUFFERSIZE,1)
 
                 #For each element in tags, create a Detector
                 Detector = apriltag(self.Tag)
@@ -101,7 +103,7 @@ class STCameraDecoder():
                     tnow = datetime.now()
                     dt = (tnow - TimeLast).total_seconds()
                     #If it hasn't been enough time, skip
-                    if(dt < 1/self.Framerate):
+                    if(dt < (1/self.Framerate - 0.02)):
                         continue
                     #Store tlast for next dt calc
                     TimeLast = tnow
@@ -136,6 +138,13 @@ class STCameraDecoder():
                         if self.MqttClient is not None:
                             self.MqttClient.publish(topic,json.dumps(payload))
 
+                    #Get additional status data
+                    framecnt = VCap.get(cv2.CAP_PROP_FRAME_COUNT)
+                    camfps = VCap.get(cv2.CAP_PROP_FPS)
+                    frames = VCap.get(cv2.CAP_PROP_POS_FRAMES)
+                    ts = VCap.get(cv2.CAP_PROP_POS_MSEC)
+                    codec = VCap.get(cv2.CAP_PROP_FOURCC)
+
                     #Total time it took including OpenCV operations
                     totime = (datetime.now() - tnow).total_seconds()
 
@@ -148,7 +157,12 @@ class STCameraDecoder():
                         'DetectorTime':proctime,
                         'ProcessTime':totime,
                         'LastUpdate':StrTime,
-                        'NumDetections':len(self.Detections)
+                        'NumDetections':len(self.Detections),
+                        'FrameCount':framecnt,
+                        'CamFPS':camfps,
+                        'AtFrame':frames,
+                        'AtTime':ts,
+                        'Codec':codec
                     }
 
                     #Publish status data to MQTT as well
